@@ -8,8 +8,8 @@ import java.util.List;
 
 @Data
 public class ChatGPTRequest {
-    private String model;
-    private List<Message> messages;
+    private String model; //물어볼 모델
+    private List<Message> messages; //물어볼 메시지들
 
     @Builder
     public ChatGPTRequest(String model, String prompt) {

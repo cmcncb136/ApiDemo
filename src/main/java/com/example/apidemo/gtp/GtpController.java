@@ -4,6 +4,7 @@ import com.example.apidemo.gtp.dto.ChatGPTRequest;
 import com.example.apidemo.gtp.dto.ChatGTPResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,19 +15,10 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("gtp")
 @AllArgsConstructor
 public class GtpController {
-    private final String url = "https://api.openai.com/v1/chat/completions";
-
-    private final String model = "gpt-4o-mini";
-
-    private final RestTemplate restTemplate;
+    private final GtpService gtpService;
 
     @GetMapping("/chat")
-    public String chat(@RequestParam("prompt") String prompt) {
-        ChatGPTRequest chatGPTRequest = ChatGPTRequest.builder().model(model).prompt(prompt).build();
-        ChatGTPResponse chatGTPResponse = restTemplate.postForObject(url, chatGPTRequest, ChatGTPResponse.class);
-        if (chatGTPResponse == null) {
-            return null;
-        }
-        return chatGTPResponse.getChoices().getFirst().getMessage().getContent();
+    public ResponseEntity<String> chat(@RequestParam("prompt") String prompt) {
+        return gtpService.chat(prompt);
     }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatGTPResponse {
-    private List<Choice> choices;
+    private List<Choice> choices; //응답
 
     @Data
     @NoArgsConstructor
