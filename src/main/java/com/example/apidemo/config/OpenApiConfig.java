@@ -11,14 +11,12 @@ public class OpenApiConfig {
     private String apiKey;
 
     @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
+    public ChatGTPRestTemplate restTemplate() {
+        return new ChatGTPRestTemplate(apiKey);
+    }
 
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("Authorization", "Bearer " + apiKey);
-            return execution.execute(request, body);
-        });
-
-        return restTemplate;
+    @Bean
+    public RestTemplate getRestTemplate() {
+        return new RestTemplate();
     }
 }

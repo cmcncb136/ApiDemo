@@ -12,7 +12,7 @@ public class AwsLambdaConfig {
     @Bean
     public LambdaClient lambdaClient() {
         return LambdaClient.builder()
-                .region(Region.AP_NORTHEAST_2)
+                .region(Region.US_EAST_1)
                 .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .build();
     }
