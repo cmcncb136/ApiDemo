@@ -27,7 +27,7 @@ searchBox.addEventListener("keypress", function(event) {
                 console.error("Error:", error);
                 addMessage("서버와의 연결에 문제가 발생했습니다. 다시 시도해주세요.", 'bot');
             });*/
-        addMessage("<HTML><HEAD><TITLE>Top HTML Tags</TITLE></HEAD><BODY>HTML is swell.\nLife is good.\n</BODY></html>",'bot');
+        addMessage("<HTML><BODY>HTML is swell.\nLife is good.\n</BODY></html>",'bot');
     }
 });
 
