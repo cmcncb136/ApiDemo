@@ -1,5 +1,12 @@
     package com.example.apidemo.agent;
 
+    import com.example.apidemo.agent.dto.TempDataDto;
+    import com.example.apidemo.db.DataEntity;
+    import com.example.apidemo.db.Keyword;
+    import com.example.apidemo.db.KeywordAndData;
+    import com.example.apidemo.db.service.DataService;
+    import com.example.apidemo.db.service.KeywordAndDataService;
+    import com.example.apidemo.db.service.KeywordService;
     import com.example.apidemo.gtp.GtpService;
     import com.example.apidemo.gtp.dto.ChatGPTRequest;
     import com.example.apidemo.gtp.dto.ChatGTPResponse;
@@ -17,6 +24,7 @@
 
 
     import java.io.IOException;
+    import java.util.ArrayList;
     import java.util.List;
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
@@ -27,8 +35,12 @@
         private final GtpService gtpService;
 
         private final NaverBlogSearchService naverBlogSearchService;
-        private final NaverBlogScraperService naverBlogScraperService;
         private final NaverBlogFastScraperService naverBlogFastScraperService;
+
+        private final DataService dataService;
+        private final KeywordAndDataService keywordAndDataService;
+        private final KeywordService keywordService;
+        private final ObjectMapper objectMapper;
 
         private final String GET_LANGUAGE_CODE_QUERY = "첫 줄의 언어가 어떤 언어 코드인지를 반환해 그리고 그 언어 코드만을 반환해.";
         private final String SEARCH_RECOMMEND_QUERY = "위 내용을 네이버에 검색할 생각인데 검색할 때 해당 내용 목적에 맞게 검색할 한국어 내용을 1개만 추천해주고 추천한 내용만 반환해줘";
@@ -44,8 +56,7 @@
                 """;
         private final String SEARCH_TRANSLATE_QUERY = "위 내용을 번역해줘. 단, JSON 형태가 유지되어야해";
 
-
-        private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, div 박스 하나의 감싸진 html 코드로 만들어서 코드만 반환해줘";
+        private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, div 태크를 하나만 사용한 html 코드로 만들어서 코드만 반환해줘";
 
         public String getLanguage(String query) {
             System.out.println("query : " + query);
@@ -128,6 +139,8 @@
             }
             System.out.println("translatedContents: " + translatedContents);
 
+            //저장
+
             //취합
             String rst = togetherBlog(language, translatedContents);
             if(rst == null) {
@@ -135,6 +148,50 @@
             }
 
             return ResponseEntity.status(HttpStatus.OK).body(rst);
+        }
+
+        public void saveContent(List<String> urls, List<String> contents, String language) {
+            List<DataEntity> dataEntities = new ArrayList<>();
+            List<List<String>> keywordsList = new ArrayList<>();
+
+            for(int i = 0; i < urls.size(); i++) {
+                try {
+                     TempDataDto tempDataDto = objectMapper.readValue(contents.get(i), TempDataDto.class);
+                     dataEntities.add(tempDataDto.toDataEntity(urls.get(i), language));
+                    keywordsList.add(tempDataDto.keywords);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for(int i = 0; i < dataEntities.size(); i++) {
+                DataEntity data =  dataEntities.get(i);
+                DataEntity dataEntity = dataService.getDataById(data.getUrl());
+                if(dataEntity == null) {
+                    dataService.saveData(data);
+                }else{
+                    dataEntity.setCount(dataEntity.getCount() + 1);
+                    dataService.updateData(dataEntity);
+                }
+
+                List<String> keywords = keywordsList.get(i);
+                for(int j = 0; j < keywords.size(); j++) {
+                    Keyword keyword = keywordService.getKeywordById(keywords.get(i));
+                    if(keyword == null) {
+                        keyword = keywordService.saveKeyword(Keyword.builder().keyword(
+                                keywords.get(i)
+                        ).count(0).build());
+                    }
+
+                    keyword.setCount(keyword.getCount() + 1);
+                    keywordService.updateKeyword(keyword);
+
+                    keywordAndDataService.saveKeywordAndData(KeywordAndData.builder()
+                                    .url(keywords.get(i))
+                                    .keyword(keywords.get(i))
+                            .build());
+                }
+            }
         }
 
         private List<String> summaryBlog(List<String> blogContents) {

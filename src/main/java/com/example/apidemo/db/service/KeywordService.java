@@ -25,8 +25,8 @@ public class KeywordService {
     }
 
     // Read (Find by ID)
-    public Optional<Keyword> getKeywordById(String id) {
-        return keywordRepo.findById(id);
+    public Keyword getKeywordById(String id) {
+        return keywordRepo.findById(id).orElse(null);
     }
 
     // Update (Update operation is done by save method)
