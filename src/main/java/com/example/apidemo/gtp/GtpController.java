@@ -1,9 +1,6 @@
 package com.example.apidemo.gtp;
 
-import com.example.apidemo.gtp.dto.ChatGPTRequest;
-import com.example.apidemo.gtp.dto.ChatGTPResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +15,6 @@ public class GtpController {
 
     @GetMapping("/chat")
     public ResponseEntity<String> chat(@RequestParam("prompt") String prompt) {
-        return gtpService.chat(prompt);
+        return gtpService.chatSimple(prompt);
     }
 }
