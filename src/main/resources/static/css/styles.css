@@ -85,7 +85,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    height: 60px; /* 컨테이너 높이 설정 */
+    height: 70px; /* 컨테이너 높이 설정 */
     width: 250px; /* 컨테이너 너비 설정 */
     text-align: center;
     z-index: 100;
