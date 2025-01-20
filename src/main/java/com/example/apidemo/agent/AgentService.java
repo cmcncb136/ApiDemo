@@ -45,7 +45,7 @@
         private final String SEARCH_TRANSLATE_QUERY = "위 내용을 번역해줘. 단, JSON 형태가 유지되어야해";
 
 
-        private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, div 박스 하나의 감싸진 html 코드로 만들어서 코드만 반환해줘";
+        private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, div 태크를 하나만 사용한 html 코드로 만들어서 코드만 반환해줘";
 
         public String getLanguage(String query) {
             System.out.println("query : " + query);
