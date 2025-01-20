@@ -1,8 +1,21 @@
+const url = "/stream"; // Spring Boot 스트리밍 엔드포인트
+
+// DOM 요소 가져오기
 const searchBoxContainer = document.querySelector(".search-box-container");
 const searchBox = document.querySelector("#search-box");
 const contextBox = document.getElementById("context-box");
-const loadingContainer = document.getElementById("loading-container"); // 로딩 컨테이너
-const loadingText = document.getElementById("loading-text"); // 로딩 텍스트
+const loadingText = document.querySelector(".loading-container p");
+
+// 검색창에 포커스가 가면 화면이 변경되도록 처리
+searchBox.addEventListener("focus", () => {
+    searchBoxContainer.classList.add("moved"); // 화면 변경 클래스 추가
+    showContextBox();
+});
+
+// context-box 보이게 하는 함수
+function showContextBox() {
+    contextBox.style.display = "flex";
+}
 
 // 입력한 메시지를 처리하는 함수
 searchBox.addEventListener("keypress", function (event) {
@@ -60,13 +73,58 @@ function hideLoading() {
     loadingContainer.style.display = "none"; // 로딩 컨테이너 숨기기
 }
 
-// 검색창에 포커스가 가면 화면이 변경되도록 처리
-searchBox.addEventListener("focus", () => {
-    searchBoxContainer.classList.add("moved");
-    showContextBox();
-});
+// Fetch API로 스트리밍 데이터 수신
+fetch(url)
+    .then((response) => {
+        if (!response.body) {
+            throw new Error("ReadableStream is not supported in this browser.");
+        }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
 
-// context-box 보이게 하는 함수
-function showContextBox() {
-    contextBox.style.display = "flex";
-}
+        function updateLoadingText(stage, customMessage = null) {
+            // 단계에 맞는 텍스트 업데이트
+            const stages = {
+                "1": "네이버 검색 중...",
+                "2": "데이터 요약 중...",
+                "3": "데이터 번역 중...",
+                "4": "데이터 취합 중...",
+            };
+
+            if (stage === "0" && customMessage) {
+                loadingText.textContent = customMessage;
+            } else if (stages[stage]) {
+                loadingText.textContent = stages[stage];
+            } else {
+                loadingText.textContent = "단계를 식별할 수 없습니다.";
+            }
+        }
+
+        function readStream() {
+            return reader.read().then(({ done, value }) => {
+                if (done) {
+                    console.log("Stream complete.");
+                    loadingText.textContent = "완료!";
+                    return;
+                }
+                // 수신된 데이터를 처리
+                const data = decoder.decode(value, { stream: true }).trim();
+                console.log("Received:", data);
+
+                // 0인 경우 메시지 분리
+                if (data.startsWith("0:")) {
+                    const customMessage = data.split(":")[1].trim();
+                    updateLoadingText("0", customMessage);
+                } else {
+                    updateLoadingText(data);
+                }
+                return readStream();
+            });
+        }
+
+        return readStream();
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        loadingText.textContent = "오류 발생!";
+    });
