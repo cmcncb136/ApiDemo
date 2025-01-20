@@ -1,6 +1,7 @@
 const searchBoxContainer = document.querySelector(".search-box-container");
 const searchBox = document.querySelector("#search-box");
 const contextBox = document.getElementById("context-box");
+const loadingSpinner = document.getElementById("loading-spinner"); // 로딩 애니메이션 요소
 
 // 입력한 메시지를 처리하는 함수
 searchBox.addEventListener("keypress", function(event) {
@@ -9,6 +10,8 @@ searchBox.addEventListener("keypress", function(event) {
 
         addMessage(userMessage, 'user'); // 사용자 메시지 화면에 추가
         searchBox.value = ''; // 입력창 초기화
+
+        showLoading(); // 로딩 애니메이션 표시
 
         // 서버로 메시지를 전송하고 응답 받기
         fetch("http://localhost:8080/agent?query=" + userMessage, {  // 실제 서버 URL로 수정
@@ -25,6 +28,9 @@ searchBox.addEventListener("keypress", function(event) {
             .catch(error => {
                 console.error("Error:", error);
                 addMessage("서버와의 연결에 문제가 발생했습니다. 다시 시도해주세요.", 'bot');
+            })
+            .finally(() => {
+                hideLoading(); // 로딩 애니메이션 숨기기
             });
     }
 });
@@ -39,6 +45,15 @@ function addMessage(message, sender) {
     contextBox.scrollTop = contextBox.scrollHeight; // 스크롤을 가장 아래로 이동
 }
 
+// 로딩 애니메이션 보이기
+function showLoading() {
+    loadingSpinner.style.display = "block";
+}
+
+// 로딩 애니메이션 숨기기
+function hideLoading() {
+    loadingSpinner.style.display = "none";
+}
 
 // 검색창에 포커스가 가면 화면이 변경되도록 처리
 searchBox.addEventListener("focus", () => {
