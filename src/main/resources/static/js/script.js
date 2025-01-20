@@ -24,7 +24,7 @@ searchBox.addEventListener("keypress", function (event) {
             .then((response) => response.text()) // 서버에서 텍스트 형식으로 응답 받기
             .then((data) => {
                 // 서버에서 받은 텍스트 응답을 봇 메시지로 화면에 추가
-                addMessage(data, "bot");
+                addMessage(data.replace("```html","").replace("```",""), "bot");
             })
             .catch((error) => {
                 console.error("Error:", error);
