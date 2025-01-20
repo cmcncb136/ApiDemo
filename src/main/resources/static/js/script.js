@@ -1,20 +1,18 @@
 const searchBoxContainer = document.querySelector(".search-box-container");
 const searchBox = document.querySelector("#search-box");
 const contextBox = document.getElementById("context-box");
-const loadingContainer = document.getElementById("loading-container"); // 로딩 컨테이너
+const loadingSpinner = document.getElementById("loading-spinner"); // 로딩 애니메이션 요소
 const loadingText = document.getElementById("loading-text"); // 로딩 메시지 텍스트
 
 // 입력한 메시지를 처리하는 함수
-searchBox.addEventListener("keypress", function (event) {
+searchBox.addEventListener("keypress", function(event) {
     if (event.key === "Enter" && searchBox.value.trim() !== "") {
         const userMessage = searchBox.value.trim(); // 사용자가 입력한 메시지
 
         addMessage(userMessage, 'user'); // 사용자 메시지 화면에 추가
         searchBox.value = ''; // 입력창 초기화
 
-        // 작업 내용을 동적으로 설정
-        const taskDescription = getTaskDescription(userMessage);
-        showLoading(taskDescription); // 로딩 애니메이션 및 메시지 표시
+        showLoading(); // 로딩 애니메이션 표시
 
         // 서버로 메시지를 전송하고 응답 받기
         fetch("http://localhost:8080/agent?query=" + userMessage, {  // 실제 서버 URL로 수정
@@ -48,28 +46,14 @@ function addMessage(message, sender) {
     contextBox.scrollTop = contextBox.scrollHeight; // 스크롤을 가장 아래로 이동
 }
 
-// 로딩 애니메이션과 메시지를 보이게 하는 함수
-function showLoading(taskDescription) {
-    loadingText.textContent = taskDescription; // 로딩 메시지 설정
-    loadingContainer.style.display = "flex"; // 로딩 컨테이너 표시
+// 로딩 애니메이션 보이기
+function showLoading() {
+    loadingSpinner.style.display = "block";
 }
 
-// 로딩 애니메이션과 메시지를 숨기는 함수
+// 로딩 애니메이션 숨기기
 function hideLoading() {
-    loadingContainer.style.display = "none";
-}
-
-// 사용자의 메시지에 따라 작업 내용을 반환하는 함수
-function getTaskDescription(userMessage) {
-    if (userMessage.includes("번역")) {
-        return "번역 작업을 수행 중입니다...";
-    } else if (userMessage.includes("네이버")) {
-        return "네이버 API에서 데이터를 가져오는 중입니다...";
-    } else if (userMessage.includes("GPT")) {
-        return "GPT 결과를 생성하는 중입니다...";
-    } else {
-        return "요청을 처리 중입니다...";
-    }
+    loadingSpinner.style.display = "none";
 }
 
 // 검색창에 포커스가 가면 화면이 변경되도록 처리
