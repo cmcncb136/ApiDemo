@@ -11,12 +11,11 @@ searchBox.addEventListener("keypress", function(event) {
         searchBox.value = ''; // 입력창 초기화
 
         // 서버로 메시지를 전송하고 응답 받기
-        fetch("https://yourserver.com/api/chat", {  // 실제 서버 URL로 수정
-            method: "POST",
+        fetch("http://localhost:8080/agent?query=" + userMessage, {  // 실제 서버 URL로 수정
+            method: "GET",
             headers: {
                 "Content-Type": "text/plain", // 서버로 전송하는 데이터 형식은 텍스트
             },
-            body: userMessage // 사용자 메시지를 텍스트로 서버에 전송
         })
             .then(response => response.text())  // 서버에서 텍스트 형식으로 응답 받기
             .then(data => {
