@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 @RestController
 @AllArgsConstructor
@@ -17,15 +18,9 @@ public class AgentController {
     private final AgentService agentService;
 
     @GetMapping("")
-    public ResponseBodyEmitter agent(@RequestParam("query") String query) {
-        ResponseBodyEmitter emitter = new ResponseBodyEmitter();
-        try {
-            agentService.agentService(query, emitter);
-        } catch (IOException e) {
-            emitter.completeWithError(e);
-        }
+    public ResponseEntity<String> agent(@RequestParam("query") String query)  {
 
-        return emitter;
+        return  agentService.agentService(query);
     }
 
 
