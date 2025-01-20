@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.apache.tika.language.detect.LanguageDetector;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class AgentService {
     private final NaverBlogFastScraperService naverBlogFastScraperService;
 
     private final String GET_LANGUAGE_CODE_QUERY = "첫 줄의 언어가 어떤 언어 코드인지를 반환해 그리고 그 언어 코드만을 반환해.";
-    private final String SEARCH_RECOMMEND_QUERY = "위 내용을 네이버에 검색할 생각인데 검색할 때 해당 내용 목적에 맞게 검색할 내용을 1개만 추천해주고 추천한 내용만 반환해줘";
+    private final String SEARCH_RECOMMEND_QUERY = "위 내용을 네이버에 검색할 생각인데 검색할 때 해당 내용 목적에 맞게 검색할 한국어 내용을 1개만 추천해주고 추천한 내용만 반환해줘";
     private final String SEARCH_SUMMARY_QUERY = """
             위에 내용을 바탕으로 다음 JSON 데이터를 채워줘.
             {
@@ -43,8 +44,10 @@ public class AgentService {
                "isAd" : true/false
             }
             """;
-    private final String SEARCH_TRANSLATE_QUERY = " 언어코드에 맞게 문자열에 내용을 추가하거나 삭제하지 않고 그대로 번역해줘.";
-    private final String SEARCH_TOGETHER_QUERY = "에 쓰인 언어로 해당 내용을 정리해줘 그리고, 내용을 html 코드로 만들어서 코드만 반환해줘";
+    private final String SEARCH_TRANSLATE_QUERY = "위 내용을 번역해줘. 단, JSON 형태가 유지되어야해";
+
+
+    private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, 수직으로 내용을 배치한 html 코드로 만들어서 코드만 반환해줘";
 
     public String getLanguage(String query) {
         System.out.println("query : " + query);
@@ -60,23 +63,30 @@ public class AgentService {
         return chatGTPResponse.getChoices().getFirst().getMessage().getContent();
     }
 
-    public ResponseEntity<String> agentService(String query) {
+    public ResponseEntity<String> agentService(String query, ResponseBodyEmitter emitter) throws IOException {
         String language = getLanguage(query);
-        System.out.println(language);
+        System.out.println("language : " + language);
 
         ResponseEntity<String> searchQueryResponse = gtpService.chatSimple("\"" + query + "\"" + SEARCH_RECOMMEND_QUERY);
+        emitter.send("1");
 
-        if (searchQueryResponse.getStatusCode() != HttpStatus.OK)
+        if (searchQueryResponse.getStatusCode() != HttpStatus.OK) {
+            emitter.send("0");
+            emitter.send("GTP를 사용하는데 문제가 발생했습니다.");
+            emitter.complete();
             return ResponseEntity.status(searchQueryResponse.getStatusCode()).body("GTP를 사용하는데 문제가 발생했습니다.");
-
+        }
         String searchQuery = searchQueryResponse.getBody();
         searchQuery = searchQuery.replaceAll("\"", "");
         System.out.println("searchQuery: " + searchQuery);
 
         ResponseEntity<String> searchSourceResponse = naverBlogSearchService.invokeNaverBlogSearch(searchQuery);
-        if (searchSourceResponse.getStatusCode() != HttpStatus.OK)
+        if (searchSourceResponse.getStatusCode() != HttpStatus.OK) {
+            emitter.send("0");
+            emitter.send("Naver Search API를 사용하는데 문제가 발생했습니다.");
+            emitter.complete();
             return ResponseEntity.status(searchSourceResponse.getStatusCode()).body("Naver Search API를 사용하는데 문제가 발생했습니다.");
-
+        }
         //조회
         String searchSource = searchSourceResponse.getBody();
         System.out.println("searchSource: " + searchSource);
@@ -86,6 +96,9 @@ public class AgentService {
             ObjectMapper objectMapper = new ObjectMapper();
             naverBlogSearchResponse = objectMapper.readValue(searchSource, NaverBlogSearchResponse.class);
         } catch (Exception e) {
+            emitter.send("0");
+            emitter.send("서버 내부 문제");
+            emitter.complete();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
@@ -103,26 +116,40 @@ public class AgentService {
         if (blogContents.getStatusCode() != HttpStatus.OK || blogContents.getBody() == null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 
-
+        emitter.send("2");
         //요약
         List<String> summaryContent = summaryBlog(blogContents.getBody());
-        if (summaryContent == null)
+        if (summaryContent == null) {
+            emitter.send("0");
+            emitter.send("서버 내부 문제");
+            emitter.complete();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-
+        }
         System.out.println("summaryContent: " + summaryContent);
 
+        emitter.send("3");
         //번역
         List<String> translatedContents = translateBlog(language, summaryContent);
-        if (translatedContents == null)
+        if (translatedContents == null) {
+            emitter.send("0");
+            emitter.send("서버 내부 문제");
+            emitter.complete();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-
+        }
         System.out.println("translatedContents: " + translatedContents);
 
+        emitter.send("4");
         //취합
-        String rst = togetherBlog(translatedContents);
-        if(rst == null)
+        String rst = togetherBlog(language, translatedContents);
+        if(rst == null) {
+            emitter.send("0");
+            emitter.send("서버 내부 문제");
+            emitter.complete();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
+        emitter.send(rst);
+        emitter.complete();
         return ResponseEntity.status(HttpStatus.OK).body(rst);
     }
 
@@ -155,27 +182,49 @@ public class AgentService {
     }
 
     private List<String> translateBlog(String language, List<String> summaryContents) {
-        String query = "\n\n" + language + SEARCH_TRANSLATE_QUERY;
-        ResponseEntity<List<String>> translateContents = gtpService.chatSimple(summaryContents.stream().map(
-                it -> it + query
+
+
+        ResponseEntity<List<ChatGTPResponse>> translateContents = gtpService.chat(summaryContents.stream().map(
+                it -> {
+                    ChatGPTRequest chatGPTRequest = ChatGPTRequest.builder()
+                            .prompt("tmp")
+                            .build();
+
+                    chatGPTRequest.getMessages().clear();
+                    chatGPTRequest.getMessages().add(Message.builder().role("system").content("\"" + language + "\"" + " 해당 언어 코드에 맞게 번역해").build());
+
+                    String query = it + "\n\n" + SEARCH_TRANSLATE_QUERY;
+                    chatGPTRequest.getMessages().add(Message.builder().role("user").content(query).build());
+                    return  chatGPTRequest;
+                }
         ).toList());
 
         if (translateContents.getStatusCode() != HttpStatus.OK || translateContents.getBody() == null)
             return null;
 
         return translateContents.getBody().stream().map(translateContent -> {
-            String tmp = getJSONString(translateContent);
+            String tmp = getJSONString(translateContent.getChoices().getFirst().getMessage().getContent());
             return tmp != null ? tmp : "";
         }).toList();
     }
 
-    private String togetherBlog(List<String> summaryContents) {
+    private String togetherBlog(String language, List<String> summaryContents) {
+        ChatGPTRequest chatGPTRequest = ChatGPTRequest.builder()
+                .prompt("tmp")
+                .build();
+
+        chatGPTRequest.getMessages().clear();
+        chatGPTRequest.getMessages().add(Message.builder().role("system").content(language + " 로 번역해줘").build());
+
         String query = summaryContents.toString() + "\n\n" + SEARCH_TOGETHER_QUERY;
-        ResponseEntity<String> rst = gtpService.chatSimple(query);
+
+        chatGPTRequest.getMessages().add(Message.builder().role("user").content(query).build());
+
+        ResponseEntity<ChatGTPResponse> rst = gtpService.chat(chatGPTRequest);
         if(rst.getStatusCode() != HttpStatus.OK || rst.getBody() == null)
             return null;
 
-        return rst.getBody();
+        return rst.getBody().getChoices().getFirst().getMessage().getContent();
     }
 
 
