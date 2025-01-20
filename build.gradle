@@ -34,7 +34,8 @@ dependencies {
     implementation 'software.amazon.awssdk:lambda:2.20.8'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.apache.httpcomponents:httpclient:4.5.13'
-
+    implementation 'org.jsoup:jsoup:1.15.4'
+    implementation 'com.microsoft.playwright:playwright:1.44.0' //Selenium 보더 더욱 경량화된 모델
 }
 
 tasks.named('test') {

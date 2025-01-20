@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class NaverBlogSearchService {
@@ -23,7 +26,8 @@ public class NaverBlogSearchService {
     private static final String apiURL = "https://openapi.naver.com/v1/search/blog?query=";
 
     public ResponseEntity<String> invokeNaverBlogSearch(String query) {
-        String api = apiURL + query;
+        String api = null;
+        api = apiURL + URLEncoder.encode(query, StandardCharsets.UTF_8);
 
         try(CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(api);

@@ -13,9 +13,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @AllArgsConstructor
 public class GtpService {
-    @Value ("${openai.api.key}")
-    private static String apiKey;
-
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
     private final String MODEL = "gpt-4o-mini";
