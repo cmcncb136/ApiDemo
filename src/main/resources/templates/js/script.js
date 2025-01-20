@@ -11,7 +11,7 @@ searchBox.addEventListener("keypress", function(event) {
         searchBox.value = ''; // 입력창 초기화
 
         // 서버로 메시지를 전송하고 응답 받기
-        fetch("https://yourserver.com/api/chat", {
+        fetch("https://yourserver.com/api/chat", { // 여기 수정해야 함.
             method: "POST",
             headers: {
                 "Content-Type": "text/plain", // String 형식으로 전송
@@ -21,9 +21,7 @@ searchBox.addEventListener("keypress", function(event) {
             .then(response => {
                 // 임의의 데이터를 반환 (예: "서버 응답: <사용자 입력>")
                 return new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve("임의의 봇 응답: <a href='https://www.naver.com' target='_blank'>네이버로 이동하기</a>");
-                    }, 500); // 500ms 후에 응답 처리
+                    resolve("임의의 봇 응답: <a href='https://www.naver.com' target='_blank'>네이버로 이동하기</a>");
                 });
             })
             .then(data => {
