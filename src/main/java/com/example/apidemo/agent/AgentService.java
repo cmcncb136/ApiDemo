@@ -65,12 +65,21 @@
             String language = getLanguage(query);
             System.out.println("language : " + language);
 
-            ResponseEntity<String> searchQueryResponse = gtpService.chatSimple("\"" + query + "\"" + SEARCH_RECOMMEND_QUERY);
+            ChatGPTRequest chatGPTRequest = ChatGPTRequest.builder()
+                    .prompt(query)
+                    .build();
+
+            chatGPTRequest.getMessages().clear();
+            chatGPTRequest.getMessages().add(Message.builder().role("system").content("응답은 한국어으로만 해").build());
+            chatGPTRequest.getMessages().add(Message.builder().role("user").content("\"" + query + "\"" + SEARCH_RECOMMEND_QUERY).build());
+
+
+            ResponseEntity<ChatGTPResponse> searchQueryResponse = gtpService.chat(chatGPTRequest);
 
             if (searchQueryResponse.getStatusCode() != HttpStatus.OK) {
                 return ResponseEntity.status(searchQueryResponse.getStatusCode()).body("GTP를 사용하는데 문제가 발생했습니다.");
             }
-            String searchQuery = searchQueryResponse.getBody();
+            String searchQuery = searchQueryResponse.getBody().getChoices().getFirst().getMessage().getContent();
             searchQuery = searchQuery.replaceAll("\"", "");
             System.out.println("searchQuery: " + searchQuery);
 
