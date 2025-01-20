@@ -13,7 +13,7 @@ public class ChatGPTRequest {
 
     @Builder
     public ChatGPTRequest(String model, String prompt) {
-        this.model = model;
+        this.model = model != null ? model : "gpt-4o-mini";
         this.messages = new ArrayList<>();
         this.messages.add(new Message("user", prompt));
     }
