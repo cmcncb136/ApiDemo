@@ -21,7 +21,5 @@ public class KeywordController {
         return  keywordService.getAllKeywords().stream().map(Keyword::getKeyword).toList();
     }
 
-    @GetMapping("/")
-
 
 }
