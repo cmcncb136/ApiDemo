@@ -11,22 +11,17 @@ searchBox.addEventListener("keypress", function(event) {
         searchBox.value = ''; // 입력창 초기화
 
         // 서버로 메시지를 전송하고 응답 받기
-        fetch("https://yourserver.com/api/chat", { // 여기 수정해야 함.
+        fetch("https://yourserver.com/api/chat", {  // 실제 서버 URL로 수정
             method: "POST",
             headers: {
-                "Content-Type": "text/plain", // String 형식으로 전송
+                "Content-Type": "text/plain", // 서버로 전송하는 데이터 형식은 텍스트
             },
-            body: userMessage, // 사용자 메시지 서버로 전송
+            body: userMessage // 사용자 메시지를 텍스트로 서버에 전송
         })
-            .then(response => {
-                // 임의의 데이터를 반환 (예: "서버 응답: <사용자 입력>")
-                return new Promise((resolve) => {
-                    resolve("임의의 봇 응답: <a href='https://www.naver.com' target='_blank'>네이버로 이동하기</a>");
-                });
-            })
+            .then(response => response.text())  // 서버에서 텍스트 형식으로 응답 받기
             .then(data => {
-                // 서버에서 받은 응답을 봇 메시지로 화면에 추가
-                addMessage(data, 'bot', true);
+                // 서버에서 받은 텍스트 응답을 봇 메시지로 화면에 추가
+                addMessage(data, 'bot');
             })
             .catch(error => {
                 console.error("Error:", error);
@@ -49,6 +44,7 @@ function addMessage(message, sender, isHTML = false) {
     contextBox.appendChild(messageElement); // 메시지를 contextBox에 추가
     contextBox.scrollTop = contextBox.scrollHeight; // 스크롤을 가장 아래로 이동
 }
+
 
 // 검색창에 포커스가 가면 화면이 변경되도록 처리
 searchBox.addEventListener("focus", () => {
