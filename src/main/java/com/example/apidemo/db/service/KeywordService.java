@@ -48,4 +48,8 @@ public class KeywordService {
     public void deleteAllKeywords() {
         keywordRepo.deleteAll();
     }
+
+    public List<Keyword> getByLanguageCode(String languageCode) {
+        return keywordRepo.findByLanguageCode(languageCode);
+    }
 }

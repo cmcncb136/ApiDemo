@@ -15,12 +15,12 @@ public class Keyword {
 
     private long count;
 
-    private String language_code;
+    private String languageCode;
 
     @Builder
-    public Keyword(String keyword, long count, String language_code) {
+    public Keyword(String keyword, long count, String languageCode) {
         this.keyword = keyword;
         this.count = count;
-        this.language_code = language_code;
+        this.languageCode = languageCode;
     }
 }
