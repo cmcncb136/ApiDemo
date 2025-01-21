@@ -1,5 +1,6 @@
 package com.example.apidemo.db;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -12,8 +13,10 @@ public class DataEntity {
     @Id
     private String url;
 
+    @Column(columnDefinition = "TEXT")
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     private String language_code;
