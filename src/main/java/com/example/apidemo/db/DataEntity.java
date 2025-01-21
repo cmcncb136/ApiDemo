@@ -2,14 +2,12 @@ package com.example.apidemo.db;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor
 @Getter
+@Setter
 public class DataEntity {
     @Id
     private String url;
