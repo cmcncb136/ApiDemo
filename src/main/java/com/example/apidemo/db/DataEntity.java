@@ -11,6 +11,7 @@ import lombok.*;
 @Setter
 public class DataEntity {
     @Id
+    @Column(length = 150) //현재 naver server에 mariaDB에 key 키 제한이 255(default) 보다 작아서 지정해 줌
     private String url;
 
     @Column(columnDefinition = "TEXT")
