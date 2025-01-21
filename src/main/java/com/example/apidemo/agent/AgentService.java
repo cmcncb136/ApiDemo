@@ -158,7 +158,7 @@
                 try {
                      TempDataDto tempDataDto = objectMapper.readValue(contents.get(i), TempDataDto.class);
                      dataEntities.add(tempDataDto.toDataEntity(urls.get(i), language));
-                    keywordsList.add(tempDataDto.keywords);
+                     keywordsList.add(tempDataDto.keywords);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -177,12 +177,14 @@
                 }
 
                 List<String> keywords = keywordsList.get(i);
+                if(keywords == null) continue;
+
                 for(int j = 0; j < keywords.size(); j++) {
                     Keyword keyword = keywordService.getKeywordById(keywords.get(j));
                     if(keyword == null) {
                         keyword = keywordService.saveKeyword(Keyword.builder().keyword(
                                 keywords.get(j)
-                        ).count(0).language_code(language).build());
+                        ).count(0).languageCode(language).build());
                     }
 
                     keyword.setCount(keyword.getCount() + 1);
