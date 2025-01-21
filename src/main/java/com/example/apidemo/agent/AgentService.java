@@ -57,7 +57,6 @@
         private final String SEARCH_TRANSLATE_QUERY = "위 내용을 번역해줘. 단, JSON 형태가 유지되어야해";
 
         private final String SEARCH_TOGETHER_QUERY = "위에 쓰인 언어로 해당 내용을 정리해줘 그리고, div 태크를 하나만 사용한 html 코드로 만들어서 코드만 반환해줘";
-
         public String getLanguage(String query) {
             System.out.println("query : " + query);
             ChatGPTRequest chatGPTRequest = ChatGPTRequest.builder()
@@ -140,6 +139,7 @@
             System.out.println("translatedContents: " + translatedContents);
 
             //저장
+            saveContent(blogUrls, translatedContents, language);
 
             //취합
             String rst = togetherBlog(language, translatedContents);
@@ -167,6 +167,8 @@
             for(int i = 0; i < dataEntities.size(); i++) {
                 DataEntity data =  dataEntities.get(i);
                 DataEntity dataEntity = dataService.getDataById(data.getUrl());
+
+                System.out.println("url : " + data.getUrl());
                 if(dataEntity == null) {
                     dataService.saveData(data);
                 }else{
@@ -176,19 +178,19 @@
 
                 List<String> keywords = keywordsList.get(i);
                 for(int j = 0; j < keywords.size(); j++) {
-                    Keyword keyword = keywordService.getKeywordById(keywords.get(i));
+                    Keyword keyword = keywordService.getKeywordById(keywords.get(j));
                     if(keyword == null) {
                         keyword = keywordService.saveKeyword(Keyword.builder().keyword(
-                                keywords.get(i)
-                        ).count(0).build());
+                                keywords.get(j)
+                        ).count(0).language_code(language).build());
                     }
 
                     keyword.setCount(keyword.getCount() + 1);
                     keywordService.updateKeyword(keyword);
 
                     keywordAndDataService.saveKeywordAndData(KeywordAndData.builder()
-                                    .url(keywords.get(i))
-                                    .keyword(keywords.get(i))
+                                    .url(data.getUrl())
+                                    .keyword(keywords.get(j))
                             .build());
                 }
             }
